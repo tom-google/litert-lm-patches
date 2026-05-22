@@ -1,0 +1,634 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 0e60f7b..f5bc8a1 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -12,7 +12,7 @@ publish = false
+ [dependencies]
+ antlr4rust = "0.5"
+ chrono = "0.4"
+-cxx = "=1.0.149"
++cxx = "=1.0.138"
+ googletest = "0.14"
+ indexmap = "2.12"
+ llguidance = { version = "=1.3.0", default-features = false, features = ["lark", "rayon", "ahash"] }
+diff --git a/cmake/packages/absl/absl.cmake b/cmake/packages/absl/absl.cmake
+index 3addafd..c48088e 100644
+--- a/cmake/packages/absl/absl.cmake
++++ b/cmake/packages/absl/absl.cmake
+@@ -23,6 +23,20 @@ set(ABSL_SRC_DIR ${ABSL_EXT_PREFIX}/src/absl_external CACHE INTERNAL "")
+ set(ABSL_BUILD_DIR ${ABSL_EXT_PREFIX}/src/absl_external-build CACHE INTERNAL "")
+ set(ABSL_CONFIG_CMAKE_FILE "${ABSL_INSTALL_PREFIX}/lib/cmake/absl/abslConfig.cmake")
+ 
++set(absl_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
++set(ABSL_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
++set(absl_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
++set(ABSL_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
++
++set(ABSL_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
++set(ABSL_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
++set(absl_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
++set(absl_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
++set(ABSL_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
++set(ABSL_LIB_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
++set(absl_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
++
++
+ setup_external_install_structure("${ABSL_INSTALL_PREFIX}")
+ 
+ if(NOT EXISTS "${ABSL_CONFIG_CMAKE_FILE}")
+diff --git a/cmake/packages/absl/absl_aggregate.cmake b/cmake/packages/absl/absl_aggregate.cmake
+index 9d69bbb..aaedf1c 100644
+--- a/cmake/packages/absl/absl_aggregate.cmake
++++ b/cmake/packages/absl/absl_aggregate.cmake
+@@ -55,8 +55,8 @@ macro(generate_absl_aggregate)
+             endif()
+         endforeach()
+ 
+-        set(absl_FOUND TRUE CACHE BOOL "" FORCE)
+-        set(Abseil_FOUND TRUE CACHE BOOL "" FORCE)
++        set(absl_FOUND TRUE CACHE BOOL "${ABSL_CONFIG_CMAKE_FILE}" FORCE)
++        set(Abseil_FOUND TRUE CACHE BOOL "${ABSL_CONFIG_CMAKE_FILE}" FORCE)
+         set(absl_DIR "Abseil merged archive" CACHE PATH "" FORCE)
+ 
+         get_target_property(_ABSL_PAYLOAD LiteRTLM::absl::absl INTERFACE_LINK_LIBRARIES)
+diff --git a/cmake/packages/gtest/gtest.cmake b/cmake/packages/gtest/gtest.cmake
+index 0e40bbe..4a0a0ea 100644
+--- a/cmake/packages/gtest/gtest.cmake
++++ b/cmake/packages/gtest/gtest.cmake
+@@ -21,22 +21,6 @@ set(GTEST_INSTALL_PREFIX ${GTEST_EXT_PREFIX}/install)
+ set(GTEST_INCLUDE_DIR ${GTEST_INSTALL_PREFIX}/include)
+ set(GTEST_CONFIG_CMAKE_FILE "${GTEST_INSTALL_PREFIX}/lib/cmake/GTest/GTestConfig.cmake")
+ 
+-set(absl_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
+-set(ABSL_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
+-set(absl_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
+-set(ABSL_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
+-
+-list(APPEND CMAKE_PREFIX_PATH "${ABSL_INSTALL_PREFIX}")
+-list(APPEND CMAKE_SYSTEM_PREFIX_PATH "${ABSL_INSTALL_PREFIX}")
+-
+-set(ABSL_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
+-set(ABSL_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
+-set(absl_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
+-set(absl_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
+-set(ABSL_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-set(ABSL_LIB_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-set(absl_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-
+ setup_external_install_structure("${GTEST_INSTALL_PREFIX}")
+ 
+ if(NOT EXISTS "${GTEST_CONFIG_CMAKE_FILE}")
+diff --git a/cmake/packages/litert/litert.cmake b/cmake/packages/litert/litert.cmake
+index f314c92..6b0a9d3 100644
+--- a/cmake/packages/litert/litert.cmake
++++ b/cmake/packages/litert/litert.cmake
+@@ -46,7 +46,7 @@ ExternalProject_Add(
+   GIT_REPOSITORY
+     https://github.com/google-ai-edge/LiteRT.git
+   GIT_TAG
+-    fb16353a648922cb6c67a8e9a7a9ebc946360ad2 #Updated on 2026-03-24
++    2160f96fe644275c3aec078f1cc839fa478db5e9 #Updated on 2026-04-06
+   GIT_SUBMODULES ""
+   GIT_SUBMODULES_RECURSE FALSE
+   PREFIX
+diff --git a/cmake/packages/litert/litert_patcher.cmake b/cmake/packages/litert/litert_patcher.cmake
+index e28b3d7..2b3aec7 100644
+--- a/cmake/packages/litert/litert_patcher.cmake
++++ b/cmake/packages/litert/litert_patcher.cmake
+@@ -116,7 +116,7 @@ patch_file_content("${LITERT_SRC_DIR}/cc/internal/litert_runtime_builtin.cc"
+ file(READ "${LITERT_PACKAGE_DIR}/shims/litert_cc_options_shim.cmake" litert_cc_options_shim_CONTENT)
+ patch_file_content("${LITERT_SRC_DIR}/cc/options/CMakeLists.txt"
+     "cmake_minimum_required\\(VERSION 3.20\\).*"
+-    ${litert_cc_options_shim_CONTENT}
++    "${litert_cc_options_shim_CONTENT}"
+     TRUE
+ )
+ 
+diff --git a/cmake/packages/litert/litert_target_map.cmake b/cmake/packages/litert/litert_target_map.cmake
+index a3aaa49..6a8253f 100644
+--- a/cmake/packages/litert/litert_target_map.cmake
++++ b/cmake/packages/litert/litert_target_map.cmake
+@@ -12,9 +12,10 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-# Updated on 2026-03-25
++# Updated on 2026-04-06
+ set(LITERT_TARGET_MAP
+     "litert::cc_api=${LITERT_BUILD_DIR}/cc/liblitert_cc_api.a"
++    "litert::cc_options=${LITERT_BUILD_DIR}/cc/options/liblitert_cc_options.a"
+     "litert::cc_internal=${LITERT_BUILD_DIR}/cc/internal/liblitert_cc_internal.a"
+     "litert::cc_internal_extra=${LITERT_BUILD_DIR}/cc/internal/liblitert_cc_internal_extra.a"
+     "litert::runtime=${LITERT_BUILD_DIR}/runtime/liblitert_runtime.a"
+@@ -27,23 +28,28 @@ set(LITERT_TARGET_MAP
+     "litert::tool_flags_apply_plugin=${LITERT_BUILD_DIR}/tools/flags/liblitert_tool_flags_apply_plugin.a"
+     "litert::tool_flags_mediatek=${LITERT_BUILD_DIR}/tools/flags/vendors/liblitert_tool_flags_mediatek.a"
+     "litert::tool_flags_google_tensor=${LITERT_BUILD_DIR}/tools/flags/vendors/liblitert_tool_flags_google_tensor.a"
++    "litert::tool_flags_samsung=${LITERT_BUILD_DIR}/tools/flags/vendors/liblitert_tool_flags_samsung.a"
+     "litert::tool_flags_intel_openvino=${LITERT_BUILD_DIR}/tools/flags/vendors/liblitert_tool_flags_intel_openvino.a"
+     "litert::tool_flags_qualcomm=${LITERT_BUILD_DIR}/tools/flags/vendors/liblitert_tool_flags_qualcomm.a"
+     "litert::tool_flags_types=${LITERT_BUILD_DIR}/tools/flags/liblitert_tool_flags_types.a"
+     "litert::qnn_saver_utils=${LITERT_BUILD_DIR}/vendors/qualcomm/libqnn_saver_utils.a"
+     "litert::qnn_manager=${LITERT_BUILD_DIR}/vendors/qualcomm/libqnn_manager.a"
+     "litert::qnn_context_binary_info=${LITERT_BUILD_DIR}/vendors/qualcomm/libqnn_context_binary_info.a"
++    "litert::qnn_tensor_pool=${LITERT_BUILD_DIR}/vendors/qualcomm/core/libqnn_tensor_pool.a"
+     "litert::qnn_backends=${LITERT_BUILD_DIR}/vendors/qualcomm/core/backends/libqnn_backends.a"
+-    "litert::qnn_dump=${LITERT_BUILD_DIR}/vendors/qualcomm/core/dump/libqnn_dump.a"
++    "litert::qnn_dump_graph=${LITERT_BUILD_DIR}/vendors/qualcomm/core/dump/libqnn_dump_graph.a"
+     "litert::qnn_transformation=${LITERT_BUILD_DIR}/vendors/qualcomm/core/transformation/libqnn_transformation.a"
+     "litert::qnn_wrappers=${LITERT_BUILD_DIR}/vendors/qualcomm/core/wrappers/libqnn_wrappers.a"
++    "litert::qnn_common=${LITERT_BUILD_DIR}/vendors/qualcomm/core/libqnn_common.a"
+     "litert::qnn_builders=${LITERT_BUILD_DIR}/vendors/qualcomm/core/builders/libqnn_builders.a"
+-    "litert::qnn_core=${LITERT_BUILD_DIR}/vendors/qualcomm/core/libqnn_core.a"
++    "litert::qnn_miscs=${LITERT_BUILD_DIR}/vendors/qualcomm/core/utils/libqnn_miscs.a"
++    "litert::qnn_model=${LITERT_BUILD_DIR}/vendors/qualcomm/core/utils/libqnn_model.a"
++    "litert::qnn_log=${LITERT_BUILD_DIR}/vendors/qualcomm/core/utils/libqnn_log.a"
++    "litert::qnn_soc_table=${LITERT_BUILD_DIR}/vendors/qualcomm/core/schema/libqnn_soc_table.a"
+     "litert::logging=${LITERT_BUILD_DIR}/c/liblitert_logging.a"
+     "litert::c_api=${LITERT_BUILD_DIR}/c/liblitert_c_api.a"
+     "litert::compiler_plugin=${LITERT_BUILD_DIR}/compiler/liblitert_compiler_plugin.a"
+     "litert::core=${LITERT_BUILD_DIR}/core/liblitert_core.a"
+     "litert::core_cache=${LITERT_BUILD_DIR}/core/cache/liblitert_core_cache.a"
+     "litert::core_model=${LITERT_BUILD_DIR}/core/model/liblitert_core_model.a"
+-    "litert::cc_options=${LITERT_BUILD_DIR}/cc/options/liblitert_cc_options.a"
+-)
++)
+\ No newline at end of file
+diff --git a/cmake/packages/litert_lm/CMakeLists.txt b/cmake/packages/litert_lm/CMakeLists.txt
+index 3b6530f..c00150b 100644
+--- a/cmake/packages/litert_lm/CMakeLists.txt
++++ b/cmake/packages/litert_lm/CMakeLists.txt
+@@ -110,6 +110,11 @@ option(LITERT_BUILD_CONFIG_DISABLE_NPU_VAL
+     TRUE
+ )
+ 
++option(LITERTLM_XNNPACK_ENABLE_KLEIDIAI
++    "Bool passed to XNNPACK for enabling KleidiAI. Defaults to FALSE."
++    FALSE
++)
++
+ set_property(GLOBAL PROPERTY LITERTLM_LOCAL_ARCHIVE_REGISTRY "")
+ set_property(GLOBAL PROPERTY LITERTLM_LOCAL_TARGET_REGISTRY "")
+ 
+diff --git a/cmake/packages/re2/re2.cmake b/cmake/packages/re2/re2.cmake
+index b9a9f5b..0accaab 100644
+--- a/cmake/packages/re2/re2.cmake
++++ b/cmake/packages/re2/re2.cmake
+@@ -20,26 +20,10 @@ set(RE2_EXT_PREFIX ${EXTERNAL_PROJECT_BINARY_DIR}/re2 CACHE INTERNAL "")
+ set(RE2_INSTALL_PREFIX ${RE2_EXT_PREFIX}/install CACHE INTERNAL "")
+ set(RE2_LIB_DIR ${RE2_INSTALL_PREFIX}/lib CACHE INTERNAL "")
+ set(RE2_INCLUDE_DIR ${RE2_INSTALL_PREFIX}/include CACHE INTERNAL "")
++set(RE2_SRC_DIR ${RE2_EXT_PREFIX}/src/re2_external)
+ set(RE2_CONFIG_CMAKE_FILE "${RE2_LIB_DIR}/cmake/re2/re2Config.cmake" CACHE INTERNAL "")
+ 
+ 
+-set(absl_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
+-set(ABSL_DIR "${ABSL_INSTALL_PREFIX}/lib/cmake/absl" CACHE PATH "Path to absl config")
+-set(absl_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
+-set(ABSL_ROOT "${ABSL_INSTALL_PREFIX}" CACHE PATH "absl root dir")
+-
+-list(APPEND CMAKE_PREFIX_PATH "${ABSL_INSTALL_PREFIX}")
+-list(APPEND CMAKE_SYSTEM_PREFIX_PATH "${ABSL_INSTALL_PREFIX}")
+-
+-set(ABSL_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
+-set(ABSL_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
+-set(absl_INCLUDE_DIR "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dir")
+-set(absl_INCLUDE_DIRS "${ABSL_INSTALL_PREFIX}/include" CACHE PATH "absl include dirs")
+-set(ABSL_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-set(ABSL_LIB_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-set(absl_LIBRARY_DIR "${ABSL_INSTALL_PREFIX}/lib" CACHE PATH "absl lib dir")
+-
+-
+ setup_external_install_structure("${RE2_INSTALL_PREFIX}")
+ 
+ if(NOT EXISTS "${RE2_CONFIG_CMAKE_FILE}")
+@@ -54,6 +38,15 @@ if(NOT EXISTS "${RE2_CONFIG_CMAKE_FILE}")
+       main
+     PREFIX
+       ${RE2_EXT_PREFIX}
++    PATCH_COMMAND
++      git checkout -- . && git clean -df
++      COMMAND ${CMAKE_COMMAND}
++        -DABSL_CONFIG_CMAKE_FILE=${ABSL_CONFIG_CMAKE_FILE}
++        -DLITERTLM_MODULES_DIR=${LITERTLM_MODULES_DIR}
++        -DLITERTLM_RE2_SRC_DIR=${RE2_SRC_DIR} 
++        -DLITERTLM_RE2_SHIM_PATH="${RE2_PACKAGE_DIR}/re2_shim.cmake"
++        -P "${RE2_PACKAGE_DIR}/re2_patcher.cmake"
++
+     CMAKE_ARGS
+       ${LITERTLM_TOOLCHAIN_FILE}
+       ${LITERTLM_TOOLCHAIN_ARGS}
+@@ -71,6 +64,9 @@ if(NOT EXISTS "${RE2_CONFIG_CMAKE_FILE}")
+       -DABSL_LIBRARY_DIR=${ABSL_LIBRARY_DIR}
+       -DABSL_LIB_DIR=${ABSL_LIB_DIR}
+       -Dabsl_LIBRARY_DIR=${absl_LIBRARY_DIR}
++      -DABSL_PACKAGE_DIR=${ABSL_PACKAGE_DIR}
++      -DLITERTLM_MODULES_DIR=${LITERTLM_MODULES_DIR}
++      -DLITERTLM_RE2_SHIM_PATH="${RE2_PACKAGE_DIR}"
+   )
+ 
+ else()
+diff --git a/cmake/packages/re2/re2_patcher.cmake b/cmake/packages/re2/re2_patcher.cmake
+index d3fe5d0..874ed28 100644
+--- a/cmake/packages/re2/re2_patcher.cmake
++++ b/cmake/packages/re2/re2_patcher.cmake
+@@ -15,14 +15,14 @@
+ 
+ message(STATUS "[LiteRTLM] Patching RE2...")
+ 
+-set(ROOT_LIST "${RE2_SRC_DIR}/CMakeLists.txt")
++set(ROOT_LIST "${LITERTLM_RE2_SRC_DIR}/CMakeLists.txt")
+ 
+ if(EXISTS "${ROOT_LIST}")
+     file(READ "${ROOT_LIST}" ROOT_CONTENT)
+ 
+     string(REPLACE 
+-        "set(RE2_CXX_VERSION cxx_std_17)" 
+-        "set(RE2_CXX_VERSION cxx_std_20)" 
++        "set(RE2_CXX_VERSION cxx_std_17)"
++        "set(RE2_CXX_VERSION cxx_std_20)\ninclude(${LITERTLM_RE2_SHIM_PATH})"
+         ROOT_CONTENT "${ROOT_CONTENT}"
+     )
+ 
+diff --git a/cmake/packages/re2/re2_shim.cmake b/cmake/packages/re2/re2_shim.cmake
+new file mode 100644
+index 0000000..24ce263
+--- /dev/null
++++ b/cmake/packages/re2/re2_shim.cmake
+@@ -0,0 +1,60 @@
++# Copyright 2026 Google LLC.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++include_guard(GLOBAL)
++
++include("${LITERTLM_MODULES_DIR}/utils.cmake")
++include("${ABSL_PACKAGE_DIR}/absl_aggregate.cmake")
++
++
++generate_absl_aggregate()
++
++include_directories(${ABSL_INCLUDE_DIR})
++link_libraries(LiteRTLM::absl::shim)
++
++# --- Toolchain-Specific Linker Flags ---
++set(_LITERTLM_LINK_MULTIDEF "")
++set(_LITERTLM_LINK_GROUP_START "")
++set(_LITERTLM_LINK_GROUP_END "")
++set(_LITERTLM_SYSLIBS "")
++
++if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
++    if(APPLE)
++        # AppleClang / Mach-O Linker
++        set(_LITERTLM_LINK_MULTIDEF "-Wl,-multiply_defined,suppress")
++        set(_LITERTLM_SYSLIBS "-lz -lpthread -ldl")
++    elseif(ANDROID)
++        # Android / Bionic (NO standalone rt or pthread)
++        set(_LITERTLM_LINK_MULTIDEF "-Wl,--allow-multiple-definition")
++        set(_LITERTLM_LINK_GROUP_START "-Wl,--start-group")
++        set(_LITERTLM_LINK_GROUP_END "-Wl,--end-group")
++        set(_LITERTLM_SYSLIBS "-lz -ldl -llog")
++    else()
++        # Linux / ELF Linker (GNU ld or LLD)
++        set(_LITERTLM_LINK_MULTIDEF "-Wl,--allow-multiple-definition")
++        set(_LITERTLM_LINK_GROUP_START "-Wl,--start-group")
++        set(_LITERTLM_LINK_GROUP_END "-Wl,--end-group")
++        set(_LITERTLM_SYSLIBS "-lz -lrt -lpthread -ldl")
++    endif()
++elseif(MSVC)
++    # MSVC Linker
++    set(_LITERTLM_LINK_MULTIDEF "/FORCE:MULTIPLE")
++    set(_LITERTLM_SYSLIBS "") # Relying on MSVC defaults, add specifics if needed later
++endif()
++
++set(CMAKE_CXX_STANDARD_LIBRARIES
++    "${CMAKE_CXX_STANDARD_LIBRARIES} ${_LITERTLM_LINK_MULTIDEF} ${_LITERTLM_LINK_GROUP_START} ${_ABSL_PAYLOAD} ${_LITERTLM_SYSLIBS} ${_LITERTLM_LINK_GROUP_END}"
++    CACHE STRING "Forced Abseil aggregate for Protobuf internal linking" FORCE
++)
+diff --git a/runtime/conversation/CMakeLists.txt b/runtime/conversation/CMakeLists.txt
+index d662eaf..2cddbad 100644
+--- a/runtime/conversation/CMakeLists.txt
++++ b/runtime/conversation/CMakeLists.txt
+@@ -95,6 +95,27 @@ target_link_libraries(runtime_conversation_prompt_utils
+ )
+ 
+ 
++add_litertlm_library(runtime_conversation_channel_util STATIC
++  channel_util.cc
++)
++add_library(LiteRTLM::Runtime::Conversation::ChannelUtil ALIAS runtime_conversation_channel_util)
++
++target_include_directories(runtime_conversation_channel_util
++  PUBLIC
++    ${GENERATED_SRC_DIR}
++    ${LITERTLM_INCLUDE_PATHS}
++)
++
++target_link_libraries(runtime_conversation_channel_util
++  PUBLIC
++    LITERTLM_DEPS
++    LiteRTLM::Runtime::Conversation::IoTypes
++    LiteRTLM::Runtime::Engine::IoTypes
++)
++
++
++
++
+ add_library(runtime_conversation_libs INTERFACE)
+ add_library(LiteRTLM::Runtime::Conversation ALIAS runtime_conversation_libs)
+ 
+diff --git a/runtime/conversation/model_data_processor/CMakeLists.txt b/runtime/conversation/model_data_processor/CMakeLists.txt
+index 8ed9ac9..1cba072 100644
+--- a/runtime/conversation/model_data_processor/CMakeLists.txt
++++ b/runtime/conversation/model_data_processor/CMakeLists.txt
+@@ -60,6 +60,19 @@ target_include_directories(runtime_conversation_model_data_processor_gemma3_data
+ )
+ 
+ 
++# ==============================================================================
++# Gemma4 Data Processor Config
++# ==============================================================================
++add_litertlm_library(runtime_conversation_model_data_processor_gemma4_data_processor_config INTERFACE)
++add_library(LiteRTLM::Runtime::Conversation::Processor::Gemma4Config ALIAS runtime_conversation_model_data_processor_gemma4_data_processor_config)
++
++target_include_directories(runtime_conversation_model_data_processor_gemma4_data_processor_config
++  INTERFACE
++    ${GENERATED_SRC_DIR}
++    ${LITERTLM_INCLUDE_PATHS}
++)
++
++
+ add_litertlm_library(runtime_conversation_model_data_processor_function_gemma_data_processor_config INTERFACE)
+ add_library(LiteRTLM::Runtime::Conversation::FuncProcessor::GemmaConfig ALIAS runtime_conversation_model_data_processor_function_gemma_data_processor_config)
+ 
+@@ -265,6 +278,43 @@ target_link_libraries(runtime_conversation_model_data_processor_factory
+     LITERTLM_DEPS
+ )
+ 
++# ==============================================================================
++# Gemma3 Data Processor
++# ==============================================================================
++add_litertlm_library(runtime_conversation_model_data_processor_gemma4_data_processor STATIC
++  gemma4_data_processor.cc
++)
++add_library(LiteRTLM::Runtime::Conversation::Processor::Gemma4 ALIAS runtime_conversation_model_data_processor_gemma4_data_processor)
++
++target_include_directories(runtime_conversation_model_data_processor_gemma4_data_processor
++  PUBLIC
++    ${GENERATED_SRC_DIR}
++    ${LITERTLM_INCLUDE_PATHS}
++)
++
++target_link_libraries(runtime_conversation_model_data_processor_gemma4_data_processor
++  PUBLIC
++    runtime_conversation_io_types
++    runtime_engine_io_types
++    LiteRTLM::Runtime::Conversation::Processor::Gemma4Config
++    LiteRTLM::Runtime::Components::Tokenizer::Interface
++    LiteRTLM::Runtime::Components::ConstrainedDecoding::Constraint
++    LiteRTLM::Runtime::Components::ConstrainedDecoding::ConstraintProvider
++    LiteRTLM::Runtime::Components::Preprocessor::Audio
++    LiteRTLM::Runtime::Components::Preprocessor::AudioMiniAudio
++    LiteRTLM::Runtime::Components::Preprocessor::Image
++    LiteRTLM::Runtime::Components::Preprocessor::StbImage
++    LiteRTLM::Runtime::Components::ToolUse::ParserUtils
++    LiteRTLM::Runtime::Components::ToolUse::PythonFormatUtils
++    runtime_util_litert_status_util
++    runtime_util_memory_mapped_file
++    LiteRTLM::Runtime::Conversation::Processor::DataUtils
++    LiteRTLM::Runtime::Conversation::Processor::Interface
++    LITERTLM_DEPS
++)
++
++
++
+ # ==============================================================================
+ # Folder Facade
+ # ==============================================================================
+diff --git a/runtime/executor/CMakeLists.txt b/runtime/executor/CMakeLists.txt
+index 735b7be..b41a459 100644
+--- a/runtime/executor/CMakeLists.txt
++++ b/runtime/executor/CMakeLists.txt
+@@ -117,6 +117,7 @@ target_link_libraries(runtime_executor_audio_litert_compiled_model_executor
+     LiteRTLM::Runtime::Components::ModelResources::Interface
+     runtime_util_litert_status_util
+     LiteRTLM::Runtime::Executor::LiteRTCompiledModelExecutorUtils
++    LiteRTLM::Runtime::Util::LoggingTensorBuffer
+ 
+     LITERTLM_DEPS
+ )
+diff --git a/runtime/util/CMakeLists.txt b/runtime/util/CMakeLists.txt
+index 1a626f5..cb3fba6 100644
+--- a/runtime/util/CMakeLists.txt
++++ b/runtime/util/CMakeLists.txt
+@@ -43,7 +43,7 @@ set(PKG_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+ # target_link_libraries(runtime_util_external_file_cc_proto PUBLIC LITERTLM_DEPS)
+ 
+ # ==============================================================================
+-# 1. Convert Tensor Buffer
++# Convert Tensor Buffer
+ # ==============================================================================
+ add_litertlm_library(runtime_util_convert_tensor_buffer INTERFACE)
+ add_library(LiteRTLM::Runtime::Util::ConvertTensorBuffer ALIAS runtime_util_convert_tensor_buffer)
+@@ -60,7 +60,7 @@ target_link_libraries(runtime_util_convert_tensor_buffer
+ )
+ 
+ # ==============================================================================
+-# 2. Tensor Buffer Util
++# Tensor Buffer Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_tensor_buffer_util STATIC
+   tensor_buffer_util.cc
+@@ -80,7 +80,7 @@ target_link_libraries(runtime_util_tensor_buffer_util
+ )
+ 
+ # ==============================================================================
+-# 3. LiteRT Status Util
++# LiteRT Status Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_litert_status_util INTERFACE)
+ add_library(LiteRTLM::Runtime::Util::LiteRtStatusUtil ALIAS runtime_util_litert_status_util)
+@@ -97,7 +97,7 @@ target_link_libraries(runtime_util_litert_status_util
+ )
+ 
+ # ==============================================================================
+-# 4. Scoped File (Platform Specific)
++# Scoped File (Platform Specific)
+ # ==============================================================================
+ set(LITERT_CC_INTERNAL_DIR "${LITERT_SRC_DIR}/cc/internal/" CACHE PATH "")
+ set(SCOPED_FILE_SRCS "${LITERT_CC_INTERNAL_DIR}/scoped_file.cc")
+@@ -125,7 +125,7 @@ target_link_libraries(runtime_util_scoped_file
+ )
+ 
+ # ==============================================================================
+-# 5. Memory Mapped File (Platform Specific)
++# Memory Mapped File (Platform Specific)
+ # ==============================================================================
+ if(WIN32)
+   set(MMAP_SRC memory_mapped_file_win.cc)
+@@ -156,7 +156,7 @@ target_link_libraries(runtime_util_memory_mapped_file
+ )
+ 
+ # ==============================================================================
+-# 6. File Util
++# File Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_file_util STATIC
+   file_util.cc
+@@ -175,7 +175,7 @@ target_link_libraries(runtime_util_file_util
+ )
+ 
+ # ==============================================================================
+-# 7. File Format Util
++# File Format Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_file_format_util STATIC
+   file_format_util.cc
+@@ -199,7 +199,7 @@ target_link_libraries(runtime_util_file_format_util
+ )
+ 
+ # ==============================================================================
+-# 8. Executor Data Util
++# Executor Data Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_executor_data_util STATIC
+   executor_data_util.cc
+@@ -222,7 +222,7 @@ target_link_libraries(runtime_util_executor_data_util
+ )
+ 
+ # ==============================================================================
+-# 9. LiteRT LM Loader
++# LiteRT LM Loader
+ # ==============================================================================
+ add_litertlm_library(runtime_util_litert_lm_loader STATIC
+   litert_lm_loader.cc
+@@ -246,7 +246,7 @@ target_link_libraries(runtime_util_litert_lm_loader
+ )
+ 
+ # ==============================================================================
+-# 10. Logging
++# Logging
+ # ==============================================================================
+ add_litertlm_library(runtime_util_logging INTERFACE)
+ add_library(LiteRTLM::Runtime::Util::Logging ALIAS runtime_util_logging)
+@@ -263,7 +263,7 @@ target_link_libraries(runtime_util_logging
+ )
+ 
+ # ==============================================================================
+-# 11. Logging Tensor Buffer
++# Logging Tensor Buffer
+ # ==============================================================================
+ add_litertlm_library(runtime_util_logging_tensor_buffer STATIC
+   logging_tensor_buffer.cc
+@@ -282,7 +282,27 @@ target_link_libraries(runtime_util_logging_tensor_buffer
+ )
+ 
+ # ==============================================================================
+-# 12. LoRA Util
++# Log Tensor Buffer
++# ==============================================================================
++add_litertlm_library(runtime_util_log_tensor_buffer STATIC
++  log_tensor_buffer.cc
++)
++add_library(LiteRTLM::Runtime::Util::LogTensorBuffer ALIAS runtime_util_log_tensor_buffer)
++
++target_include_directories(runtime_util_log_tensor_buffer
++  PRIVATE
++    ${GENERATED_SRC_DIR}
++    ${LITERTLM_INCLUDE_PATHS}
++)
++
++target_link_libraries(runtime_util_log_tensor_buffer
++  PUBLIC
++    LiteRTLM::Runtime::Util::ConvertTensorBuffer
++    LITERTLM_DEPS
++)
++
++# ==============================================================================
++# LoRA Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_lora_util STATIC
+   lora_util.cc
+@@ -305,7 +325,7 @@ target_link_libraries(runtime_util_lora_util
+ )
+ 
+ # ==============================================================================
+-# 13. LoRA Data
++# LoRA Data
+ # ==============================================================================
+ add_litertlm_library(runtime_util_lora_data STATIC
+   lora_data.cc
+@@ -327,7 +347,7 @@ target_link_libraries(runtime_util_lora_data
+ )
+ 
+ # ==============================================================================
+-# 14. Metadata Util
++# Metadata Util
+ # ==============================================================================
+ add_litertlm_library(runtime_util_metadata_util STATIC
+   metadata_util.cc
+@@ -346,7 +366,7 @@ target_link_libraries(runtime_util_metadata_util
+ )
+ 
+ # ==============================================================================
+-# 15. Zip Readonly Mem File
++# Zip Readonly Mem File
+ # ==============================================================================
+ add_litertlm_library(runtime_util_zip_readonly_mem_file STATIC
+   zip_readonly_mem_file.cc
+@@ -367,7 +387,7 @@ target_link_libraries(runtime_util_zip_readonly_mem_file
+ )
+ 
+ # ==============================================================================
+-# 16. Zip Utils
++# Zip Utils
+ # ==============================================================================
+ add_litertlm_library(runtime_util_zip_utils STATIC
+   zip_utils.cc
+@@ -390,7 +410,7 @@ target_link_libraries(runtime_util_zip_utils
+ )
+ 
+ # ==============================================================================
+-# 17. Model Asset Bundle Resources
++# Model Asset Bundle Resources
+ # ==============================================================================
+ add_litertlm_library(runtime_util_model_asset_bundle_resources STATIC
+   model_asset_bundle_resources.cc
+@@ -413,7 +433,7 @@ target_link_libraries(runtime_util_model_asset_bundle_resources
+ )
+ 
+ # ==============================================================================
+-# 18. Model Type Utils
++# Model Type Utils
+ # ==============================================================================
+ add_litertlm_library(runtime_util_model_type_utils STATIC
+   model_type_utils.cc
+@@ -434,7 +454,7 @@ target_link_libraries(runtime_util_model_type_utils
+ )
+ 
+ # ==============================================================================
+-# 19. Folder Facade
++# Folder Facade
+ # ==============================================================================
+ add_library(runtime_util_libs INTERFACE)
+ add_library(LiteRTLM::Runtime::Util ALIAS runtime_util_libs)
+@@ -446,6 +466,7 @@ target_link_libraries(runtime_util_libs INTERFACE
+   LiteRTLM::Runtime::Util::FileUtil
+   LiteRTLM::Runtime::Util::LMLoader
+   LiteRTLM::Runtime::Util::LoggingTensorBuffer
++  LiteRTLM::Runtime::Util::LogTensorBuffer
+   LiteRTLM::Runtime::Util::LoRAData
+   LiteRTLM::Runtime::Util::LoRAUtil
+   LiteRTLM::Runtime::Util::MemoryMappedFile
+
