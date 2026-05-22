@@ -1,18 +1,24 @@
-# Shared Assets Repository
+# litert-lm-patches
 
-This repository serves as a centralized location for files and resources that are not included in the official source repositories.
+This repository serves as a supplemental distribution point for files and resources required for LiteRT-LM development that are not included in the official LiteRT-LM source repositories
 
-## Intent
-The purpose of this repository is to provide a single, accessible location for secondary assets, configuration patches, and archival backups that are required for project development but are kept outside of the primary codebase.
+## Purpose
+The purpose of this repository is to provide a central, accessible location for secondary assets and configuration patches required by partners to integrate LiteRT-LM.
+
+These files are maintained separately from the primary codebase to support specific build environment requirements and are not part of the official OSS distribution.
 
 ## Repository Structure
 - **`/patches`**: Contains patch files intended for application to upstream dependencies.
 - ~~**`/archives`**: Houses snapshots or backups of components that are not currently part of the official repository.~~ *(Coming soon)*
 
 ## Usage
-This is a utility repository for sharing files that need to be accessible to external partners or internal teams without altering the main project structure. 
+This is a utility repository intended to assist with specific integration workflows.
 
-*Note: Please check the contents periodically for updates, as this is a manually maintained distribution point.*
+_**Note**: These assets are provided "as-is" and are distinct from the primary LiteRT-LM project. Please verify that these files are compatible with the specific version of the LiteRT-LM codebase you are targeting._
+
+## License
+
+Unless otherwise specified, all files in this repository are licensed under the Apache License, Version 2.0.
 
 ## Access
 This repository is provided for general access. If you have questions regarding the files hosted here, please reach out to the repository maintainers.
