@@ -22,3 +22,6 @@ Unless otherwise specified, all files in this repository are licensed under the 
 
 ## Access
 This repository is provided for general access. If you have questions regarding the files hosted here, please reach out to the repository maintainers.
+
+### Contribution Policy
+This repository is a read-only distribution point for verified LiteRT-LM build assets. We are not accepting pull requests or external contributions. If you encounter issues with these assets, please contact your internal project lead or the repository maintainer directly.
